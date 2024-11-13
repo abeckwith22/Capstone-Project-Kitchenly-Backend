@@ -26,14 +26,9 @@ class Recipe {
         }
 
         const result = await db.query(`
-            INSERT INTO recipes (username,
-                                title,
-                                recipe_description,
-                                preparation_time,
-                                cooking_time,
-                                servings)
+            INSERT INTO recipes (username, title, recipe_description, preparation_time, cooking_time, servings)
             VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING id, username, title, recipe_description, preparation_time, cooking_time, servings
+            RETURNING *
         `, [
             data.username,
             data.title,
@@ -52,13 +47,13 @@ class Recipe {
         }
         else recipe.ingredients = [];
         // set recipe categories 
-        if(data.categories){
+        if(data.categories && data.ingredients.length > 0){
             await this.setRecipeToCategory(recipe.id, [...data.categories]);
             recipe.categories = await this.getRecipeCategories(recipe.id);
         }
         else recipe.categories = [];
         // set recipe tags
-        if(data.tags){
+        if(data.tags && data.tags.length > 0){
             await this.setTagsToRecipe([...data.tags], recipe.id);
             recipe.tags = await this.getRecipeTags(recipe.id);
         }
@@ -377,7 +372,7 @@ class Recipe {
             RETURNING tag_id, recipe_id
         `
 
-        // console.debug(sqlQuery);
+        console.debug(sqlQuery);
 
         const result = await db.query(sqlQuery, [recipe_id, ...tag_ids]);
 
